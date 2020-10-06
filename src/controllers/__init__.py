@@ -1,2 +1,1 @@
 from controllers import listen_controller
-from controllers import sample_controller

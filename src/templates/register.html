@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block head %}
+{% endblock %}
+
+{% block header %}
+	<h1>{% block title %}Make An Account{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form action="/register" method="post">
+    <label for="username">Username:</label><br>
+    <input type="text" id="username" name="username"><br>
+    <label for="password">Password:</label><br>
+    <input type="password" id="password" name="password">
+    <label for="password">Confirm Password:</label><br>
+    <input type="password" id="confirmed_password" name="confirmed_password">
+    <input type="submit" value="Make Account">
+</form>
+{% endblock %}

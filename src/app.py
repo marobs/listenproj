@@ -5,6 +5,14 @@ import argparse
 # Initialize Flask app with the template folder address
 app = Flask(__name__, template_folder='templates')
 
+try:
+    fp = open('secret_key.txt')
+    app.secret_key = fp.readline()
+except:
+    raise Exception('secret_key.txt not found')
+finally:
+    fp.close()
+
 # Register the controllers and set the secret key
 app.register_blueprint(controllers.listen_controller.listen_controller)
 # app.secret_key = helpers.getFlaskSecret()

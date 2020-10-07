@@ -90,9 +90,8 @@ def register():
 ## Misc
 ##
 def get_login_request_data(req):
-    data = req.get_json()
-    username = data["username"]
-    password = data["password"]
+    username = req.form.get("username")
+    password = req.form.get("password")
     return username, password
 
 

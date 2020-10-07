@@ -1,10 +1,11 @@
 passwords = {}
 
-def get_password(user_id):
-    if user_id in passwords:
-        return passwords[user_id]
 
+def get_password(username):
+    if username in passwords:
+        return passwords[username]
     return None
 
-def register_user(user_id, password):
-    passwords[user_id] = password
+
+def register_user(username, password):
+    passwords[username] = password

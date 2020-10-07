@@ -62,10 +62,41 @@ def login_route():
 
 
 ##
+## [GET] Register
+## HTML
+##
+@listen_controller.route('/register', methods=['GET'])
+def register_route():
+    return render_template('register.html')
+
+
+##
+## [POST] Register
+## JSON
+##
+@listen_controller.route('/register', methods=['POST'])
+def register():
+    try:
+        username, password, confirm = get_register_request_data(request)
+
+        login_service.validate_registration(username, password, confirm)
+        login_service.register_user(username, password)
+    except Exception as ex:
+        LOGGER.exception(ex)
+        return render_template('bad_login.html')
+    return redirect('main')
+
+##
 ## Misc
 ##
 def get_login_request_data(req):
-    data = req.get_json()
-    username = data["username"]
-    password = data["password"]
+    username = req.form.get("username")
+    password = req.form.get("password")
     return username, password
+
+
+def get_register_request_data(req):
+    username = req.form.get("username")
+    password = req.form.get("password")
+    confirm = req.form.get("confirmed_password")
+    return username, password, confirm

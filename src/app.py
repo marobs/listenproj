@@ -7,12 +7,12 @@ import argparse
 app = Flask(__name__, template_folder='templates')
 
 try:
-    fp = open('secret_key.txt')
-    app.secret_key = fp.readline()
+    secret_key_path = open('secret_key.txt')
+    app.secret_key = secret_key_path.readline()
 except:
     raise Exception('secret_key.txt not found')
 finally:
-    fp.close()
+    secret_key_path.close()
 
 # Register the controllers and set the secret key
 app.register_blueprint(controllers.listen_controller.listen_controller)
@@ -26,4 +26,4 @@ app.register_blueprint(controllers.listen_controller.listen_controller)
 # For us, listen to port 3000 so you can just run 'python app.py' to start the server
 if __name__ == '__main__':
     # listen on external IPs
-    app.run(host='localhost', port=8000, debug=True, use_reloader=False)
+    app.run(host='0.0.0.0', port=3000, debug=True, use_reloader=False)

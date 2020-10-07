@@ -6,12 +6,12 @@ import argparse
 app = Flask(__name__, template_folder='templates')
 
 try:
-    fp = open('secret_key.txt')
-    app.secret_key = fp.readline()
+    secret_key_path = open('secret_key.txt')
+    app.secret_key = secret_key_path.readline()
 except:
     raise Exception('secret_key.txt not found')
 finally:
-    fp.close()
+    secret_key_path.close()
 
 # Register the controllers and set the secret key
 app.register_blueprint(controllers.listen_controller.listen_controller)

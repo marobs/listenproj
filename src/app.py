@@ -6,6 +6,7 @@ import argparse
 # Initialize Flask app with the template folder address
 app = Flask(__name__, template_folder='templates')
 
+
 try:
     secret_key_path = open('secret_key.txt')
     app.secret_key = secret_key_path.readline()

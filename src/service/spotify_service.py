@@ -20,11 +20,11 @@ SCOPES = [
 
 def generate_oauth_params():
     return {
-        'client_id':     urllib.parse.quote_plus(SPOTIFY_CLIENT_ID),
-        'response_type': urllib.parse.quote_plus('code'),
-        'scope':         urllib.parse.quote_plus(' '.join(SCOPES)),
-        'redirect_uri':  urllib.parse.quote_plus('http://localhost:3000/callback'),
-        'state':         urllib.parse.quote_plus(session_service.get_state())
+        'client_id':     SPOTIFY_CLIENT_ID,
+        'response_type': 'code',
+        'scope':         ' '.join(SCOPES),
+        'redirect_uri':  "http://localhost:3000/",
+        'state':         session_service.get_state()
     }
 
 def generate_spotify_request_url():

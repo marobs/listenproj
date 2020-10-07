@@ -1,8 +1,8 @@
 from flask import *
 from flask import request
 import logging as LOGGER
-from service import session_service
-from service import login_service
+
+from service import session_service, spotify_service, authorization_service, login_service
 
 # Register a blueprint named 'listen_controller'
 listen_controller = Blueprint('listen_controller', __name__, template_folder='templates')
@@ -20,8 +20,8 @@ def index():
     if (user_id is None):
         return redirect(url_for('listen_controller.login'))
 
-    #elif (authorization_service.is_authenticated(user_id) is False):
-    #    return redirect(url_for('listen_controller.spotify'))
+    elif (authorization_service.is_authenticated(user_id) is False):
+        return redirect(spotify_service.generate_spotify_request_url())
 
     else:
         return render_template("index.html")
@@ -35,7 +35,7 @@ def index():
 def login():
     print("In GET /login")
     if (session_service.is_logged_in()):
-        return redirect(url_for('listen_controller.index'))
+        return redirect('/')
 
     return render_template('login.html')
 
@@ -51,7 +51,7 @@ def login_route():
         username, password = get_login_request_data(request)
         if (login_service.check_user_password(username, password)):
             session_service.register_user(username)
-            return redirect('main')
+            return redirect('/')
 
         else:
             render_template('bad_login.html')
@@ -84,7 +84,13 @@ def register():
     except Exception as ex:
         LOGGER.exception(ex)
         return render_template('bad_login.html')
-    return redirect('main')
+    return redirect('/')
+
+@listen_controller.route('/callback', methods=['GET'])
+def callback():
+    LOGGER.info('called back')
+    return render_template('index.html')
+
 
 ##
 ## Misc

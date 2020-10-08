@@ -108,8 +108,8 @@ def callback():
 @listen_controller.route('/reddit', methods=['GET'])
 def reddit():
     songs = reddit_service.get_songs()
-    spotify_service.create_playlist(songs)
-    return render_template('index.html') # TODO page for this thing
+    # spotify_service.create_playlist(songs)
+    return render_template('reddit.html', songs=songs)
 
 
 ##

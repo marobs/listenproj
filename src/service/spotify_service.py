@@ -70,3 +70,10 @@ def create_playlist(song_list):
     for song in song_list:
         LOGGER.info(song)
     pass # TODO this 🍑🍆🍵☕
+
+
+def search_for_song(song_title, access_token):
+    URL = 'https://api.spotify.com/v1/search'
+    params = {'q': song_title, 'type': 'track'}
+
+    requests.get(URL, header={'auth': access_token}, params=urllib.parse.urlencode(params))

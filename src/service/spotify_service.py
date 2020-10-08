@@ -20,7 +20,7 @@ SCOPES = [
     'playlist-read-private'
 ]
 
-TOKEN_URL = 'https://accounts.spotify.com/api/token?'
+TOKEN_URL = 'https://accounts.spotify.com/api/token'
 TOKEN_GRANT_TYPE = 'authorization_code'
 
 def create_oauth_params():
@@ -49,9 +49,9 @@ def create_token_request_body(code):
         'client_secret': secrets_service.get_secret_key()
     }
 
-def first_time_spotify_authorization(code):
+def first_time_spotify_authorization(code, username):
     params = create_token_request_body(code)
-    response = requests.post(TOKEN_URL, params=params)
+    response = requests.post(TOKEN_URL, data=params)
 
     LOGGER.info(f'response:\n{response}')
     if response.status_code != 200:
@@ -61,7 +61,7 @@ def first_time_spotify_authorization(code):
     access_token = json.get('access_token')
     refresh_token = json.get('refresh_token')
 
-    token_dao_in_memory.save_access_token(access_token)
-    token_dao_in_memory.save_refresh_token(refresh_token)
+    token_dao_in_memory.save_access_token(username, access_token)
+    token_dao_in_memory.save_refresh_token(username, refresh_token)
 
     LOGGER.info(f'access_token: {access_token}\nrefresh_token: {refresh_token}')

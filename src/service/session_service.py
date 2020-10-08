@@ -7,7 +7,7 @@ SESSION_USER_FIELD = "username"
 SESSION_STATE_FIELD = "state"
 STATE_STRING_LENGTH = 16
 
-def get_user_id():
+def get_username():
     if (SESSION_USER_FIELD in session):
         return session[SESSION_USER_FIELD]
     else:

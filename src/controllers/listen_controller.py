@@ -2,7 +2,7 @@ from flask import *
 from flask import request
 import logging as LOGGER
 
-from service import session_service, spotify_service, authorization_service, login_service
+from service import session_service, spotify_service, authorization_service, login_service, reddit_service
 
 # Register a blueprint named 'listen_controller'
 listen_controller = Blueprint('listen_controller', __name__, template_folder='templates')
@@ -15,7 +15,7 @@ listen_controller = Blueprint('listen_controller', __name__, template_folder='te
 @listen_controller.route('/')
 def index():
     print("In GET /")
-    user_id = session_service.get_user_id()
+    user_id = session_service.get_username()
 
     if (user_id is None):
         return redirect(url_for('listen_controller.login'))
@@ -99,12 +99,17 @@ def callback():
         LOGGER.error(f'returned state string not equal to user state string:\n{state_string}  :  {session_service.get_state()}')
         return render_template('index.html')
 
-    spotify_service.first_time_spotify_authorization(authorization_code)
+    spotify_service.first_time_spotify_authorization(authorization_code, session_service.get_username())
 
     LOGGER.info('called back')
     return render_template('index.html')
 
 
+@listen_controller.route('/reddit', methods=['GET'])
+def reddit():
+    songs = reddit_service.get_songs()
+    spotify_service.create_playlist(songs)
+    return render_template('index.html') # TODO page for this thing
 
 
 ##

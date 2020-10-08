@@ -65,3 +65,8 @@ def first_time_spotify_authorization(code, username):
     token_dao_in_memory.save_refresh_token(username, refresh_token)
 
     LOGGER.info(f'access_token: {access_token}\nrefresh_token: {refresh_token}')
+
+def create_playlist(song_list):
+    for song in song_list:
+        LOGGER.info(song)
+    pass # TODO this 🍑🍆🍵☕

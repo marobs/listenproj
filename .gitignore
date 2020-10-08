@@ -1,5 +1,5 @@
 # Service specific
-src/secret_key.txt
+secret_key.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

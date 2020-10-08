@@ -3,11 +3,13 @@ import requests
 import urllib.parse
 from requests import Request
 
-import service.session_service as session_service
+from dao import token_dao_in_memory
+from service import secrets_service, session_service
 from constants import SPOTIFY_CLIENT_ID
 
 LOGGER = logging.getLogger(__name__)
 
+REDIRECT_URI = 'http://localhost:3000/callback'
 BASE_URL = 'https://accounts.spotify.com/authorize?'
 SCOPES = [
     'user-library-modify',
@@ -18,19 +20,48 @@ SCOPES = [
     'playlist-read-private'
 ]
 
-def generate_oauth_params():
+TOKEN_URL = 'https://accounts.spotify.com/api/token?'
+TOKEN_GRANT_TYPE = 'authorization_code'
+
+def create_oauth_params():
     return {
         'client_id':     SPOTIFY_CLIENT_ID,
         'response_type': 'code',
         'scope':         ' '.join(SCOPES),
-        'redirect_uri':  "http://localhost:3000/",
+        'redirect_uri':  REDIRECT_URI,
         'state':         session_service.get_state()
     }
 
-def generate_spotify_request_url():
-    params = generate_oauth_params()
+def create_spotify_request_url():
+    params = create_oauth_params()
 
     spotify_request_url = BASE_URL + urllib.parse.urlencode(params)
-    LOGGER.info(spotify_request_url)
+    LOGGER.info(f'request url:\n{spotify_request_url}')
 
     return spotify_request_url
+
+def create_token_request_body(code):
+    return {
+        'grant_type': TOKEN_GRANT_TYPE,
+        'code': code,
+        'redirect_uri': REDIRECT_URI,
+        'client_id': SPOTIFY_CLIENT_ID,
+        'client_secret': secrets_service.get_secret_key()
+    }
+
+def first_time_spotify_authorization(code):
+    params = create_token_request_body(code)
+    response = requests.post(TOKEN_URL, params=params)
+
+    LOGGER.info(f'response:\n{response}')
+    if response.status_code != 200:
+        raise Exception('Got bad response')
+
+    json = response.json()
+    access_token = json.get('access_token')
+    refresh_token = json.get('refresh_token')
+
+    token_dao_in_memory.save_access_token(access_token)
+    token_dao_in_memory.save_refresh_token(refresh_token)
+
+    LOGGER.info(f'access_token: {access_token}\nrefresh_token: {refresh_token}')

@@ -21,7 +21,7 @@ def index():
         return redirect(url_for('listen_controller.login'))
 
     elif (authorization_service.is_authenticated(user_id) is False):
-        return redirect(spotify_service.generate_spotify_request_url())
+        return redirect(spotify_service.create_spotify_request_url())
 
     else:
         return render_template("index.html")
@@ -86,10 +86,25 @@ def register():
         return render_template('bad_login.html')
     return redirect('/')
 
+##
+## [GET] Register
+## HTML
+##
 @listen_controller.route('/callback', methods=['GET'])
 def callback():
+    authorization_code = request.args.get('code')
+    state_string = request.args.get('state')
+
+    if not state_string == session_service.get_state():
+        LOGGER.error(f'returned state string not equal to user state string:\n{state_string}  :  {session_service.get_state()}')
+        return render_template('index.html')
+
+    spotify_service.first_time_spotify_authorization(authorization_code)
+
     LOGGER.info('called back')
     return render_template('index.html')
+
+
 
 
 ##

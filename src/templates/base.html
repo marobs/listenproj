@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html>
 <head>
     <title>{% block title %}{% endblock %} - Listenproj</title>
     <meta charset="UTF-8">
@@ -8,10 +9,13 @@
     {% block head %}{% endblock %}
 </head>
 
-<body class="content">
+<body>
     <header>
-		{% block header %}{% endblock %}
-	</header>
+        {% block header %}{% endblock %}
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+    </header>
 
     {% block content %}{% endblock %}
 </body>
+</html>

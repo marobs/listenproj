@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block head %}
+{% endblock %}
+
+{% block header %}
+	<h1>{% block title %}Reddit{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <h2>Some songs from r/listentothis:</h2>
+    <ul>
+    {% for song_title in songs %}
+        <li>{{ song_title }}</li>
+    {% endfor %}
+    </ul>
+{% endblock %}

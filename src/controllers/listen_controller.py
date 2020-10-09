@@ -2,7 +2,7 @@ from flask import *
 from flask import request
 import logging as LOGGER
 
-from service import session_service, spotify_service, authorization_service, login_service
+from service import session_service, spotify_service, authorization_service, login_service, reddit_service
 
 # Register a blueprint named 'listen_controller'
 listen_controller = Blueprint('listen_controller', __name__, template_folder='templates')
@@ -15,13 +15,13 @@ listen_controller = Blueprint('listen_controller', __name__, template_folder='te
 @listen_controller.route('/')
 def index():
     print("In GET /")
-    user_id = session_service.get_user_id()
+    user_id = session_service.get_username()
 
     if (user_id is None):
         return redirect(url_for('listen_controller.login'))
 
     elif (authorization_service.is_authenticated(user_id) is False):
-        return redirect(spotify_service.generate_spotify_request_url())
+        return redirect(spotify_service.create_spotify_request_url())
 
     else:
         return render_template("index.html")
@@ -86,10 +86,30 @@ def register():
         return render_template('bad_login.html')
     return redirect('/')
 
+##
+## [GET] Register
+## HTML
+##
 @listen_controller.route('/callback', methods=['GET'])
 def callback():
+    authorization_code = request.args.get('code')
+    state_string = request.args.get('state')
+
+    if not state_string == session_service.get_state():
+        LOGGER.error(f'returned state string not equal to user state string:\n{state_string}  :  {session_service.get_state()}')
+        return render_template('error.html')
+
+    spotify_service.first_time_spotify_authorization(authorization_code, session_service.get_username())
+
     LOGGER.info('called back')
     return render_template('index.html')
+
+
+@listen_controller.route('/reddit', methods=['GET'])
+def reddit():
+    songs = reddit_service.get_songs()
+    # spotify_service.create_playlist(songs)
+    return render_template('reddit.html', songs=songs)
 
 
 ##

@@ -97,7 +97,7 @@ def callback():
 
     if not state_string == session_service.get_state():
         LOGGER.error(f'returned state string not equal to user state string:\n{state_string}  :  {session_service.get_state()}')
-        return render_template('index.html')
+        return render_template('error.html')
 
     spotify_service.first_time_spotify_authorization(authorization_code, session_service.get_username())
 

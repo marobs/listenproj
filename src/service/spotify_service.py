@@ -10,6 +10,7 @@ from constants import SPOTIFY_CLIENT_ID
 LOGGER = logging.getLogger(__name__)
 
 REDIRECT_URI = 'http://localhost:3000/callback'
+SEARCH_URL = 'https://api.spotify.com/v1/search'
 BASE_URL = 'https://accounts.spotify.com/authorize?'
 SCOPES = [
     'user-library-modify',
@@ -55,7 +56,7 @@ def first_time_spotify_authorization(code, username):
 
     LOGGER.info(f'response:\n{response}')
     if response.status_code != 200:
-        raise Exception('Got bad response')
+        raise Exception(f'Received response with status code {response.status_code} from Spotify auth endpoint')
 
     json = response.json()
     access_token = json.get('access_token')
@@ -72,8 +73,7 @@ def create_playlist(song_list):
     pass # TODO this 🍑🍆🍵☕
 
 
-def search_for_song(song_title, access_token):
-    URL = 'https://api.spotify.com/v1/search'
-    params = {'q': song_title, 'type': 'track'}
-
-    requests.get(URL, header={'auth': access_token}, params=urllib.parse.urlencode(params))
+def search_for_song(artist, song_title, access_token):
+    params = {'q': {'artist': artist, 'track': song_title}, 'type': 'track'}
+    search_request = requests.get(SEARCH_URL, header={'auth': access_token}, params=urllib.parse.urlencode(params))
+    return search_request

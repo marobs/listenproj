@@ -12,16 +12,10 @@ class RedditException(Exception):
     pass
 
 
-def remove_trailing_whitespace(string):
-    if string[-1] == ' ':
-        return remove_trailing_whitespace(string[:-1])
-    else:
-        return string
-
 def get_song_from_post(post_title):
     match = split_artist_title_regex.match(post_title)
     if match and match.lastindex == 2:
-        return remove_trailing_whitespace(match[1]), remove_trailing_whitespace(match[2])
+        return match[1].strip(), match[2].strip()
 
 
 def get_songs():

@@ -4,8 +4,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 class RegistrationException(Exception):
     pass
 
-def check_user_password(user_id, password):
-    stored_password = login_dao.get_password(user_id)
+def check_user_password(username, password):
+    stored_password = login_dao.get_password(username)
 
     if check_password_hash(stored_password, password):
         return True
@@ -19,3 +19,8 @@ def register_user(username, password):
 def validate_registration(username, password, confirm_password):
     if not password == confirm_password:
         raise RegistrationException
+
+
+def clear_login_dao():
+    login_dao.clear()
+

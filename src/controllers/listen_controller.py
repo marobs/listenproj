@@ -15,16 +15,16 @@ listen_controller = Blueprint('listen_controller', __name__, template_folder='te
 @listen_controller.route('/')
 def index():
     print("In GET /")
-    user_id = session_service.get_username()
+    username = session_service.get_username()
 
-    if (user_id is None):
+    if (username is None):
         return redirect(url_for('listen_controller.login'))
 
-    elif (authorization_service.is_authenticated(user_id) is False):
+    elif (authorization_service.is_authenticated(username) is False):
         return redirect(spotify_service.create_spotify_request_url())
 
     else:
-        return render_template("index.html")
+        return render_template("index.html", login=username)
 
 
 ##
@@ -102,14 +102,17 @@ def callback():
     spotify_service.first_time_spotify_authorization(authorization_code, session_service.get_username())
 
     LOGGER.info('called back')
-    return render_template('index.html')
+    return render_template('index.html', login=session_service.get_username())
 
 
 @listen_controller.route('/reddit', methods=['GET'])
 def reddit():
-    songs = reddit_service.get_songs()
-    # spotify_service.create_playlist(songs)
-    return render_template('reddit.html', songs=songs)
+    username = session_service.get_username()
+    access_token = authorization_service.get_access_token(username)
+
+    reddit_tracks = reddit_service.get_reddit_tracks()
+    spotify_tracks = spotify_service.get_spotify_tracks(reddit_tracks, access_token)
+    return render_template('reddit.html', tracks=reddit_tracks)
 
 
 ##

@@ -3,6 +3,7 @@ import requests
 import urllib.parse
 from requests import Request
 from util import song_util
+from dao import spotify_user_dao_in_memory as spotify_dao
 
 from service import secrets_service, session_service, authorization_service
 from constants import SPOTIFY_CLIENT_ID
@@ -10,7 +11,10 @@ from constants import SPOTIFY_CLIENT_ID
 LOGGER = logging.getLogger(__name__)
 
 REDIRECT_URI = 'http://localhost:3000/callback'
+GET_USER_URL = 'https://api.spotify.com/v1/me'
 SEARCH_URL = 'https://api.spotify.com/v1/search?'
+PLAYLIST_CREATE_URL_BASE = 'https://api.spotify.com/v1/users/{}/playlists'
+PLAYLIST_ADD_URL_BASE = 'https://api.spotify.com/v1/playlists/{}/tracks'
 BASE_URL = 'https://accounts.spotify.com/authorize?'
 SCOPES = [
     'user-library-modify',
@@ -23,6 +27,9 @@ SCOPES = [
 
 TOKEN_URL = 'https://accounts.spotify.com/api/token'
 TOKEN_GRANT_TYPE = 'authorization_code'
+
+def clear_spotify_dao():
+    spotify_dao.clear()
 
 def create_oauth_params():
     return {
@@ -80,12 +87,13 @@ def get_spotify_tracks(track_dictionary_list, access_token):
             spotify_tracks.append(spotify_track)
 
     LOGGER.info(f'\n\nSpotify tracks post-formatting: {spotify_tracks}')
+    return spotify_tracks
 
 
 def search_for_song(artist, song_title, access_token):
     LOGGER.info(f'\n\nSearching for track {artist} - {song_title}')
 
-    payload = {'q': f'artist:{artist} title:{song_title}', 'type': 'track', 'limit': '3'}
+    payload = {'q': f'artist:{artist} track:\"{song_title}\"', 'type': 'track', 'limit': '3'}
     params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
     search_response = requests.get(SEARCH_URL + params, headers={'Authorization': f'Bearer {access_token}'})
 
@@ -100,7 +108,66 @@ def get_spotify_track_attributes(spotify_response):
     try:
         artist = spotify_response['tracks']['items'][0]['artists'][0]['name']
         title = spotify_response['tracks']['items'][0]['name']
-        return song_util.create_artist_song_dict(artist, title)
+        track_id = spotify_response['tracks']['items'][0]['id']
+        uri = spotify_response['tracks']['items'][0]['uri']
+        return song_util.create_track_dict(artist, title, track_id, uri)
     except:
-        LOGGER.error(f'Error grabbing Spotify song attributes')
+        LOGGER.exception(f'Error grabbing Spotify song attributes')
         return None
+
+#
+# Gets the user's Spotify ID based on their access token
+#
+def get_spotify_id(username, access_token):
+    spotify_id = spotify_dao.get_user(username)
+    if spotify_id is not None:
+        return spotify_id
+
+    user_response = requests.get(GET_USER_URL, headers={'Authorization': f'Bearer {access_token}'})
+
+    try:
+        spotify_id = user_response['id']
+        spotify_dao.save_spotify_id(username, spotify_id)
+    except Exception as ex:
+        LOGGER.exception(f'Error grabbing Spotify Id for user {username}')
+        raise ex
+
+
+#
+# Creates a playlist with the specified tracks
+#
+def create_playlist_with_tracks(username, access_token, spotify_tracks):
+    spotify_user_id = get_spotify_id(username, access_token)
+    playlist_id = create_playlist(access_token, spotify_user_id)
+
+    if playlist_id is None:
+        return
+
+    add_songs_to_playlist(access_token, playlist_id, spotify_tracks)
+
+def create_playlist(access_token, spotify_user_id):
+    create_playlist_url = PLAYLIST_CREATE_URL_BASE.format(spotify_user_id)
+    request_body = {
+        'name': 'Your Coolest Playlist',
+        'description': 'Look it\'s my coolest playlist'
+    }
+    playlist_response = requests.post(create_playlist_url, data=request_body,
+                                      headers={'Authorization': f'Bearer {access_token}'})
+
+    if (playlist_response.status_code != 200):
+        LOGGER.error(f'Received {search_response.status_code} response from Spotify playlist create request')
+        return None
+
+    return playlist_response['id']
+
+
+def add_songs_to_playlist(access_token, playlist_id, spotify_tracks):
+    add_songs_url = PLAYLIST_ADD_URL_BASE.format(playlist_id)
+    request_body = {
+        'uris': [track.get('uri') for track in spotify_tracks]
+    }
+    add_songs_response = requests.post(add_songs_url, data=request_body,
+                                       headers={'Authorization': f'Bearer {access_token}'})
+
+    if (playlist_response.status_code != 200):
+        LOGGER.error(f'Received {search_response.status_code} response from Spotify playlist add songs request')

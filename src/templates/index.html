@@ -5,5 +5,10 @@
 <h1>Hello World!</h1>
 <a href="/login">Login</a>
 <a href="/register">Register</a>
+{% if login %}
+<p>{{ login }}</p>
+{% else %}
+<p>No login</p>
+{% endif %}
 </body>
 </html>

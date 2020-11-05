@@ -10,8 +10,8 @@
 {% block content %}
     <h2>Some songs from r/listentothis:</h2>
     <ul>
-    {% for song_title in songs %}
-        <li>{{ song_title }}</li>
+    {% for track in tracks %}
+        <li>{{ track['artist'] }} - {{ track['title'] }}</li>
     {% endfor %}
     </ul>
 {% endblock %}

@@ -31,6 +31,10 @@ TOKEN_GRANT_TYPE = 'authorization_code'
 def clear_spotify_dao():
     spotify_dao.clear()
 
+def has_spotify_id(username):
+    spotify_id = spotify_dao.get_user(username)
+    return not not spotify_id
+
 def create_oauth_params():
     return {
         'client_id':     SPOTIFY_CLIENT_ID,
@@ -86,7 +90,7 @@ def get_spotify_tracks(track_dictionary_list, access_token):
         if spotify_track is not None:
             spotify_tracks.append(spotify_track)
 
-    LOGGER.info(f'\n\nSpotify tracks post-formatting: {spotify_tracks}')
+    LOGGER.info(f'\n\nSpotify tracks post-formatting:\n\n{spotify_tracks}\n\n')
     return spotify_tracks
 
 
@@ -123,11 +127,13 @@ def get_spotify_id(username, access_token):
     if spotify_id is not None:
         return spotify_id
 
-    user_response = requests.get(GET_USER_URL, headers={'Authorization': f'Bearer {access_token}'})
+    user_response_raw = requests.get(GET_USER_URL, headers={'Authorization': f'Bearer {access_token}'})
+    user_response = user_response_raw.json()
 
     try:
         spotify_id = user_response['id']
         spotify_dao.save_spotify_id(username, spotify_id)
+        return spotify_id
     except Exception as ex:
         LOGGER.exception(f'Error grabbing Spotify Id for user {username}')
         raise ex
@@ -151,13 +157,16 @@ def create_playlist(access_token, spotify_user_id):
         'name': 'Your Coolest Playlist',
         'description': 'Look it\'s my coolest playlist'
     }
-    playlist_response = requests.post(create_playlist_url, data=request_body,
-                                      headers={'Authorization': f'Bearer {access_token}'})
+    LOGGER.info(f'\n\nMaking request to {create_playlist_url}\n\n')
+    playlist_response_raw = requests.post(create_playlist_url, data=request_body,
+                                          headers={'Authorization': f'Bearer {access_token}'})
 
-    if (playlist_response.status_code != 200):
-        LOGGER.error(f'Received {search_response.status_code} response from Spotify playlist create request')
+    if (playlist_response_raw.status_code != 200):
+        LOGGER.error(f'\n\nReceived {playlist_response_raw.status_code} response from Spotify playlist create request\n\n{playlist_response_raw.reason}\n\n')
         return None
 
+    playlist_response = playlist_response_raw.json()
+    LOGGER.info(f'\n\nSuccessful response from creating playlist: {playlist_response}\n\n')
     return playlist_response['id']
 
 
@@ -166,8 +175,12 @@ def add_songs_to_playlist(access_token, playlist_id, spotify_tracks):
     request_body = {
         'uris': [track.get('uri') for track in spotify_tracks]
     }
-    add_songs_response = requests.post(add_songs_url, data=request_body,
-                                       headers={'Authorization': f'Bearer {access_token}'})
+    LOGGER.info(f'\n\nMaking request to {add_songs_url}\n\n')
+    add_songs_response_raw = requests.post(add_songs_url, data=request_body,
+                                           headers={'Authorization': f'Bearer {access_token}'})
 
-    if (playlist_response.status_code != 200):
-        LOGGER.error(f'Received {search_response.status_code} response from Spotify playlist add songs request')
+    if (add_songs_response_raw.status_code != 200):
+        LOGGER.error(f'Received {add_songs_response_raw.status_code} response from Spotify playlist add songs request{add_songs_response_raw.reason}\n\n')
+
+    add_songs_response = add_songs_response_raw.json()
+    LOGGER.info(f'\n\nSuccessful response from adding songs: {add_songs_response}\n\n')

@@ -1,4 +1,9 @@
+import logging
+
 spotify_users = {}
+
+LOGGER = logging.getLogger(__name__)
+
 
 def get_user(username):
     global spotify_users
@@ -8,6 +13,7 @@ def get_user(username):
         return None
 
 def save_spotify_id(username, spotify_id):
+    LOGGER.info(f'Saving spotify_id {spotify_id} for username {username}')
     global spotify_users
     spotify_users[username] = spotify_id
 

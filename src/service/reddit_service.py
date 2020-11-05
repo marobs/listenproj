@@ -34,10 +34,11 @@ def get_reddit_tracks():
         post = child['data']
         try:
             artist, title = get_song_from_post(post['title'])
-            tracks.append(song_util.create_track_dict(artist, title))
+            tracks.append(song_util.create_track_dict(artist, title, None, None))
         except:
             continue
 
+    LOGGER.info(f'Received Reddit tracks:\n\n{tracks}\n\n')
     return tracks
 
 

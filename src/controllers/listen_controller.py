@@ -23,12 +23,11 @@ def index():
     elif (authorization_service.is_authenticated(username) is False):
         return redirect(spotify_service.create_spotify_request_url())
 
-    elif (spotify_service.has_spotify_id(username) is False):
+    if spotify_service.has_spotify_id(username) is False:
         access_token = authorization_service.get_access_token(username)
         spotify_service.get_spotify_id(username, access_token)
 
-    else:
-        return render_template("index.html", login=username)
+    return render_template("index.html", login=username)
 
 
 ##

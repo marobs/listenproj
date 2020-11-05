@@ -154,15 +154,14 @@ def create_playlist_with_tracks(username, access_token, spotify_tracks):
 def create_playlist(access_token, spotify_user_id):
     create_playlist_url = PLAYLIST_CREATE_URL_BASE.format(spotify_user_id)
     request_body = {
-        'name': 'Your Coolest Playlist',
-        'description': 'Look it\'s my coolest playlist'
+        'name': 'Your Awesome Playlist'
     }
     LOGGER.info(f'\n\nMaking request to {create_playlist_url}\n\n')
-    playlist_response_raw = requests.post(create_playlist_url, data=request_body,
+    playlist_response_raw = requests.post(create_playlist_url, json=request_body,
                                           headers={'Authorization': f'Bearer {access_token}'})
 
-    if (playlist_response_raw.status_code != 200):
-        LOGGER.error(f'\n\nReceived {playlist_response_raw.status_code} response from Spotify playlist create request\n\n{playlist_response_raw.reason}\n\n')
+    if (playlist_response_raw.status_code >= 400):
+        LOGGER.error(f'\n\nReceived {playlist_response_raw.status_code} response from Spotify playlist create request\n\n{playlist_response_raw.content}\n\n')
         return None
 
     playlist_response = playlist_response_raw.json()
@@ -176,11 +175,11 @@ def add_songs_to_playlist(access_token, playlist_id, spotify_tracks):
         'uris': [track.get('uri') for track in spotify_tracks]
     }
     LOGGER.info(f'\n\nMaking request to {add_songs_url}\n\n')
-    add_songs_response_raw = requests.post(add_songs_url, data=request_body,
+    add_songs_response_raw = requests.post(add_songs_url, json=request_body,
                                            headers={'Authorization': f'Bearer {access_token}'})
 
-    if (add_songs_response_raw.status_code != 200):
-        LOGGER.error(f'Received {add_songs_response_raw.status_code} response from Spotify playlist add songs request{add_songs_response_raw.reason}\n\n')
+    if (add_songs_response_raw.status_code >= 400):
+        LOGGER.error(f'Received {add_songs_response_raw.status_code} response from Spotify playlist add songs request{add_songs_response_raw}\n\n')
 
     add_songs_response = add_songs_response_raw.json()
     LOGGER.info(f'\n\nSuccessful response from adding songs: {add_songs_response}\n\n')

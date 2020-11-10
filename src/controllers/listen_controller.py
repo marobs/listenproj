@@ -23,8 +23,11 @@ def index():
     elif (authorization_service.is_authenticated(username) is False):
         return redirect(spotify_service.create_spotify_request_url())
 
-    else:
-        return render_template("index.html", login=username)
+    if spotify_service.has_spotify_id(username) is False:
+        access_token = authorization_service.get_access_token(username)
+        spotify_service.get_spotify_id(username, access_token)
+
+    return render_template("index.html", login=username)
 
 
 ##
@@ -105,6 +108,10 @@ def callback():
     return render_template('index.html', login=session_service.get_username())
 
 
+##
+## [GET] Reddit
+## HTML
+##
 @listen_controller.route('/reddit', methods=['GET'])
 def reddit():
     username = session_service.get_username()
@@ -112,6 +119,7 @@ def reddit():
 
     reddit_tracks = reddit_service.get_reddit_tracks()
     spotify_tracks = spotify_service.get_spotify_tracks(reddit_tracks, access_token)
+    spotify_service.create_playlist_with_tracks(username, access_token, spotify_tracks)
     return render_template('reddit.html', tracks=reddit_tracks)
 
 

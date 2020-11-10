@@ -1,5 +1,7 @@
-def create_artist_song_dict(artist, title):
+def create_track_dict(artist, title, track_id, uri):
     return {
         'artist': artist,
-        'title': title
+        'title': title,
+        'track_id': track_id,
+        'uri': uri
     }

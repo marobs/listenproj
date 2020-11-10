@@ -1,7 +1,10 @@
 import re
 import requests
 import logging
+from datetime import date
+
 from util import song_util
+from dao import playlist_dao_in_memory as playlist_dao
 
 LOGGER = logging.getLogger(__name__)
 
@@ -22,6 +25,17 @@ def get_song_from_post(post_title):
 
 
 def get_reddit_tracks():
+    today = date.today().strftime('%Y/%m/%d')
+    tracks = playlist_dao.get_playlist_for_date(today)
+
+    if tracks is None:
+        tracks = request_songs_from_reddit()
+        playlist_dao.add_playlist_for_date(today, tracks)
+
+    return tracks
+
+
+def request_songs_from_reddit():
     songs_response = requests.get(LISTENTOTHIS_URL, headers=DEFAULT_LTTB_HEADERS)
 
     validate_response(songs_response)

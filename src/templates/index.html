@@ -3,11 +3,13 @@
 
 {% block header %}
 	<h1>{% block title %}Home{% endblock %}</h1>
-    {% if not login %}
-    <a href="/login">Login</a>
-    <a href="/register">Register</a>
-    {% endif %}
-    <a href="/reddit">Reddit</a>
+    <nav>
+        {% if not login %}
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+        {% endif %}
+        <a href="/reddit">Reddit</a>
+    </nav>
 {% endblock %}
 
 

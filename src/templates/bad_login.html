@@ -1,15 +1,15 @@
-<!DOCTYPE html>
-<html>
-<body>
+{% extends 'base.html' %}
 
-<p> WFhawfouwheuaigh </p>
-<form action="/login" method="post">
-    <label for="username">Username:</label><br>
-    <input type="text" id="username" name="username"><br>
-    <label for="password">Password:</label><br>
-    <input type="password" id="password" name="password">
-    <input type="submit" value="Sign in">
-</form>
 
-</body>
-</html>
+{% block header %}
+	<h1>{% block title %}Login{% endblock %}</h1>
+    <a href="/">Home</a>
+    <a href="/login">Login</a>
+    <a href="/register">Register</a>
+    <a href="/reddit">Reddit</a>
+{% endblock %}
+
+
+{% block content %}
+<p>Bad login</p>
+{% endblock %}

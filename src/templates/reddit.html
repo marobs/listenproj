@@ -1,11 +1,15 @@
 {% extends 'base.html' %}
 
-{% block head %}
-{% endblock %}
 
 {% block header %}
 	<h1>{% block title %}Reddit{% endblock %}</h1>
+    <a href="/">Home</a>
+    {% if not login %}
+    <a href="/login">Login</a>
+    <a href="/register">Register</a>
+    {% endif %}
 {% endblock %}
+
 
 {% block content %}
     <h2>Some songs from r/listentothis:</h2>

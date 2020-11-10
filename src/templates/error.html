@@ -1,1 +1,15 @@
 {% extends 'base.html' %}
+
+{% block head %}
+{% endblock %}
+
+{% block header %}
+	<h1>{% block title %}Error{% endblock %}</h1>
+    <a href="/login">Login</a>
+    <a href="/register">Register</a>
+    <a href="/reddit">Reddit</a>
+{% endblock %}
+
+{% block content %}
+    <p>Something went wrong :(</p>
+{% endblock %}

@@ -95,6 +95,7 @@ def register():
 ##
 @listen_controller.route('/callback', methods=['GET'])
 def callback():
+    username = session_service.get_username()
     authorization_code = request.args.get('code')
     state_string = request.args.get('state')
 
@@ -105,7 +106,7 @@ def callback():
     spotify_service.first_time_spotify_authorization(authorization_code, session_service.get_username())
 
     LOGGER.info('called back')
-    return render_template('index.html', login=session_service.get_username())
+    return render_template('index.html', login=username)
 
 
 ##
@@ -120,7 +121,7 @@ def reddit():
     reddit_tracks = reddit_service.get_reddit_tracks()
     spotify_tracks = spotify_service.get_spotify_tracks(reddit_tracks, access_token)
     spotify_service.create_playlist_with_tracks(username, access_token, spotify_tracks)
-    return render_template('reddit.html', tracks=reddit_tracks)
+    return render_template('reddit.html', tracks=reddit_tracks, login=username)
 
 
 ##

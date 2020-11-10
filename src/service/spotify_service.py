@@ -1,7 +1,7 @@
 import logging
 import requests
 import urllib.parse
-from requests import Request
+
 from util import song_util
 from dao import spotify_user_dao_in_memory as spotify_dao
 
@@ -9,6 +9,11 @@ from service import secrets_service, session_service, authorization_service
 from constants import SPOTIFY_CLIENT_ID
 
 LOGGER = logging.getLogger(__name__)
+
+
+class SpotifyException(Exception):
+    pass
+
 
 REDIRECT_URI = 'http://localhost:3000/callback'
 GET_USER_URL = 'https://api.spotify.com/v1/me'
@@ -28,12 +33,15 @@ SCOPES = [
 TOKEN_URL = 'https://accounts.spotify.com/api/token'
 TOKEN_GRANT_TYPE = 'authorization_code'
 
+
 def clear_spotify_dao():
     spotify_dao.clear()
+
 
 def has_spotify_id(username):
     spotify_id = spotify_dao.get_user(username)
     return not not spotify_id
+
 
 def create_oauth_params():
     return {
@@ -43,6 +51,7 @@ def create_oauth_params():
         'redirect_uri':  REDIRECT_URI,
         'state':         session_service.get_state()
     }
+
 
 def create_spotify_request_url():
     params = create_oauth_params()
@@ -69,7 +78,7 @@ def first_time_spotify_authorization(code, username):
 
     LOGGER.info(f'response:\n{response}')
     if response.status_code != 200:
-        raise Exception(f'Received response with status code {response.status_code} from Spotify auth endpoint')
+        raise SpotifyException(f'Received response with status code {response.status_code} from Spotify auth endpoint')
 
     json = response.json()
     access_token = json.get('access_token')
@@ -79,6 +88,7 @@ def first_time_spotify_authorization(code, username):
     authorization_service.save_refresh_token(username, refresh_token)
 
     LOGGER.info(f'access_token: {access_token}\nrefresh_token: {refresh_token}')
+
 
 #
 # Searches Spotify for the closest match to the provide tracks
@@ -101,9 +111,9 @@ def search_for_song(artist, song_title, access_token):
     params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
     search_response = requests.get(SEARCH_URL + params, headers={'Authorization': f'Bearer {access_token}'})
 
-    if (search_response.status_code != 200):
-        LOGGER.error(f'Received {search_response.status_code} response from Spotify search')
-        return None
+    if search_response.status_code != 200:
+        LOGGER.exception(f'Received {search_response.status_code} response from Spotify search')
+        raise SpotifyException(f'Received {search_response.status_code} response from Spotify search')
 
     return get_spotify_track_attributes(search_response.json())
 
@@ -115,9 +125,9 @@ def get_spotify_track_attributes(spotify_response):
         track_id = spotify_response['tracks']['items'][0]['id']
         uri = spotify_response['tracks']['items'][0]['uri']
         return song_util.create_track_dict(artist, title, track_id, uri)
-    except:
+    except KeyError:
         LOGGER.exception(f'Error grabbing Spotify song attributes')
-        return None
+
 
 #
 # Gets the user's Spotify ID based on their access token
@@ -130,13 +140,15 @@ def get_spotify_id(username, access_token):
     user_response_raw = requests.get(GET_USER_URL, headers={'Authorization': f'Bearer {access_token}'})
     user_response = user_response_raw.json()
 
+    if user_response_raw.status_code != 200:
+        raise SpotifyException(f'Got response code {user_response_raw.status_code} trying to get ID for ' +
+                               f'user "{username}"')
     try:
         spotify_id = user_response['id']
         spotify_dao.save_spotify_id(username, spotify_id)
         return spotify_id
-    except Exception as ex:
+    except KeyError:
         LOGGER.exception(f'Error grabbing Spotify Id for user {username}')
-        raise ex
 
 
 #
@@ -151,6 +163,7 @@ def create_playlist_with_tracks(username, access_token, spotify_tracks):
 
     add_songs_to_playlist(access_token, playlist_id, spotify_tracks)
 
+
 def create_playlist(access_token, spotify_user_id):
     create_playlist_url = PLAYLIST_CREATE_URL_BASE.format(spotify_user_id)
     request_body = {
@@ -160,12 +173,13 @@ def create_playlist(access_token, spotify_user_id):
     playlist_response_raw = requests.post(create_playlist_url, json=request_body,
                                           headers={'Authorization': f'Bearer {access_token}'})
 
-    if (playlist_response_raw.status_code >= 400):
-        LOGGER.error(f'\n\nReceived {playlist_response_raw.status_code} response from Spotify playlist create request\n\n{playlist_response_raw.content}\n\n')
-        return None
+    if playlist_response_raw.status_code not in (200, 201):
+        raise SpotifyException(f'\n\nReceived {playlist_response_raw.status_code} response from ' +
+                               f'Spotify playlist create request\n\n{playlist_response_raw.content}\n\n')
 
     playlist_response = playlist_response_raw.json()
     LOGGER.info(f'\n\nSuccessful response from creating playlist: {playlist_response}\n\n')
+
     return playlist_response['id']
 
 
@@ -178,8 +192,9 @@ def add_songs_to_playlist(access_token, playlist_id, spotify_tracks):
     add_songs_response_raw = requests.post(add_songs_url, json=request_body,
                                            headers={'Authorization': f'Bearer {access_token}'})
 
-    if (add_songs_response_raw.status_code >= 400):
-        LOGGER.error(f'Received {add_songs_response_raw.status_code} response from Spotify playlist add songs request{add_songs_response_raw}\n\n')
+    if add_songs_response_raw.status_code not in (200, 201):
+        raise SpotifyException(f'Received {add_songs_response_raw.status_code} response from Spotify playlist' +
+                               f'add songs request{add_songs_response_raw}\n\n')
 
     add_songs_response = add_songs_response_raw.json()
     LOGGER.info(f'\n\nSuccessful response from adding songs: {add_songs_response}\n\n')

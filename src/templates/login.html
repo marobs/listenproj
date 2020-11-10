@@ -1,9 +1,15 @@
-<!DOCTYPE html>
-<html>
-<body>
+{% extends 'base.html' %}
 
-<a href="/register">Register</a>
 
+{% block header %}
+	<h1>{% block title %}Login{% endblock %}</h1>
+    <a href="/">Home</a>
+    <a href="/register">Register</a>
+    <a href="/reddit">Reddit</a>
+{% endblock %}
+
+
+{% block content %}
 <form action="/login" method="post">
     <label for="username">Username:</label><br>
     <input type="text" id="username" name="username"><br>
@@ -11,6 +17,4 @@
     <input type="password" id="password" name="password">
     <input type="submit" value="Sign in">
 </form>
-
-</body>
-</html>
+{% endblock %}

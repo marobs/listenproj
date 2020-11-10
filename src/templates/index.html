@@ -1,14 +1,17 @@
-<!DOCTYPE html>
-<html>
-<body>
+{% extends 'base.html' %}
 
-<h1>Hello World!</h1>
-<a href="/login">Login</a>
-<a href="/register">Register</a>
-{% if login %}
-<p>{{ login }}</p>
-{% else %}
-<p>No login</p>
-{% endif %}
-</body>
-</html>
+
+{% block header %}
+	<h1>{% block title %}Home{% endblock %}</h1>
+    {% if not login %}
+    <a href="/login">Login</a>
+    <a href="/register">Register</a>
+    {% endif %}
+    <a href="/reddit">Reddit</a>
+{% endblock %}
+
+
+{% block content %}
+<h2>About</h2>
+<p>This is a bit of placeholder text lol</p>
+{% endblock %}

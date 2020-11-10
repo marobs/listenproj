@@ -4,7 +4,6 @@
     <title>{% block title %}{% endblock %} - Listenproj</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     {% block head %}{% endblock %}
 </head>
@@ -12,8 +11,9 @@
 <body>
     <header>
         {% block header %}{% endblock %}
-        <a href="/login">Login</a>
-        <a href="/register">Register</a>
+        {% if login %}
+        <p>Logged in as <b>{{ login }}</b></p>
+        {% endif %}
     </header>
 
     {% block content %}{% endblock %}

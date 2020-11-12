@@ -56,12 +56,12 @@ def request_songs_from_reddit():
     return tracks
 
 
-def validate_response(response):
-    if response.status_code != 200:
+def validate_response(songs_response):
+    if songs_response.status_code != 200:
         LOGGER.error(f'Got {songs_response.status_code} from reddit with url:{songs_response.url}')
         raise RedditException
 
-    response_json = response.json()
-    if 'data' not in response_json or 'children' not in response_json['data']:
+    songs_response_json = songs_response.json()
+    if 'data' not in songs_response_json or 'children' not in songs_response_json['data']:
         LOGGER.error(f'Got response JSON with empty data')
         raise RedditException

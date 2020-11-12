@@ -15,5 +15,20 @@
 
 {% block content %}
 <h2>About</h2>
-<p>This is a bit of placeholder text lol</p>
+Usage:
+<ol>
+    <li>Register for an account by going to /register. This will create a username and password and store them in the dao.</li>
+    <li>This will redirect to /login (because we're not smart enough to log you in immediately after registering).</li>
+    <li>After logging in, the site will check if you have an access/refresh token from Spotify. If not, it will prompt the oAuth flow with Spotify.</li>
+    <li>The result of that is a refresh and access token which are then stored in the spotify_token_dao and determine our app's idea of being auth'd.</li>
+    <li>Next, navigate to /reddit, which will:
+        <ol>
+            <li>Query Reddit for the top 25 posts of r/listentothis</li>
+            <li>Take those tracks and search Spotify for the most-related track</li>
+            <li>Query Spotify for the user's Spotify ID which will be used for creating a playlist.</li>
+            <li>Create a playlist for the user</li>
+            <li>Fill the playlist with the found songs</li>
+        </ol>
+    </li>
+</ol>
 {% endblock %}

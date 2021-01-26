@@ -80,7 +80,7 @@ def register():
     try:
         username, password, confirm = get_register_request_data(request)
 
-        login_service.validate_registration(username, password, confirm)
+        login_service.validate_registration(password, confirm)
         login_service.register_user(username, password)
 
         session_service.register_user(username)

@@ -7,16 +7,17 @@ class RegistrationException(Exception):
 def check_user_password(username, password):
     stored_password = login_dao.get_password(username)
 
-    if check_password_hash(stored_password, password):
+    if stored_password is not None and check_password_hash(stored_password, password):
         return True
     else:
         return False
+
 
 def register_user(username, password):
     login_dao.register_user(username, generate_password_hash(password))
 
 
-def validate_registration(username, password, confirm_password):
+def validate_registration(password, confirm_password):
     if not password == confirm_password:
         raise RegistrationException
 

@@ -17,10 +17,10 @@ def index():
     print("In GET /")
     username = session_service.get_username()
 
-    if (username is None):
+    if username is None:
         return redirect(url_for('listen_controller.login'))
 
-    elif (authorization_service.is_authenticated(username) is False):
+    elif authorization_service.is_authenticated(username) is False:
         return redirect(spotify_service.create_spotify_request_url())
 
     if spotify_service.has_spotify_id(username) is False:
@@ -37,7 +37,7 @@ def index():
 @listen_controller.route('/login', methods=['GET'])
 def login():
     print("In GET /login")
-    if (session_service.is_logged_in()):
+    if session_service.is_logged_in():
         return redirect('/')
 
     return render_template('login.html')
@@ -52,10 +52,8 @@ def login_route():
     print("In POST /login")
     try:
         username, password = get_login_request_data(request)
-        if (login_service.check_user_password(username, password)):
-            session_service.register_user(username)
+        if login_user(username, password):
             return redirect('/')
-
         else:
             render_template('bad_login.html')
 
@@ -82,12 +80,15 @@ def register():
     try:
         username, password, confirm = get_register_request_data(request)
 
-        login_service.validate_registration(username, password, confirm)
+        login_service.validate_registration(password, confirm)
         login_service.register_user(username, password)
+
+        session_service.register_user(username)
     except Exception as ex:
         LOGGER.exception(ex)
         return render_template('bad_login.html')
     return redirect('/')
+
 
 ##
 ## [GET] Register
@@ -116,17 +117,32 @@ def callback():
 @listen_controller.route('/reddit', methods=['GET'])
 def reddit():
     username = session_service.get_username()
+    reddit_tracks = reddit_service.get_reddit_tracks()
+    return render_template('reddit.html', tracks=reddit_tracks, login=username)
+
+
+@listen_controller.route('/reddit', methods=['POST'])
+def reddit_post():
+    username = session_service.get_username()
     access_token = authorization_service.get_access_token(username)
 
     reddit_tracks = reddit_service.get_reddit_tracks()
     spotify_tracks = spotify_service.get_spotify_tracks(reddit_tracks, access_token)
     spotify_service.create_playlist_with_tracks(username, access_token, spotify_tracks)
-    return render_template('reddit.html', tracks=reddit_tracks, login=username)
+
+    return render_template('playlist_created.html', login=username)
 
 
 ##
 ## Misc
 ##
+def login_user(username, password):
+    if login_service.check_user_password(username, password):
+        session_service.register_user(username)
+        return True
+    return False
+
+
 def get_login_request_data(req):
     username = req.form.get("username")
     password = req.form.get("password")

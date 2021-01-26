@@ -3,11 +3,13 @@
 
 {% block header %}
 	<h1>{% block title %}Reddit{% endblock %}</h1>
-    <a href="/">Home</a>
-    {% if not login %}
-    <a href="/login">Login</a>
-    <a href="/register">Register</a>
-    {% endif %}
+    <nav>
+        <a href="/">Home</a>
+        {% if not login %}
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+        {% endif %}
+    </nav>
 {% endblock %}
 
 
@@ -18,4 +20,8 @@
         <li>{{ track['artist'] }} - {{ track['title'] }}</li>
     {% endfor %}
     </ul>
+
+    <form action="/reddit" method="post">
+        <input type="submit" value="Add Playlist to Account">
+    </form>
 {% endblock %}

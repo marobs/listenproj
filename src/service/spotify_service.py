@@ -110,10 +110,15 @@ def search_for_song(artist, song_title, access_token):
     payload = {'q': f'artist:{artist} track:\"{song_title}\"', 'type': 'track', 'limit': '3'}
     params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
     search_response = requests.get(SEARCH_URL + params, headers={'Authorization': f'Bearer {access_token}'})
+    search_response_json = search_response.json()
 
     if search_response.status_code != 200:
         LOGGER.exception(f'Received {search_response.status_code} response from Spotify search')
         raise SpotifyException(f'Received {search_response.status_code} response from Spotify search')
+
+    if len(search_response_json['tracks']['items']) == 0:
+        LOGGER.info(f'No results for Spotify search params: "{payload}"')
+        return None
 
     return get_spotify_track_attributes(search_response.json())
 
@@ -125,7 +130,7 @@ def get_spotify_track_attributes(spotify_response):
         track_id = spotify_response['tracks']['items'][0]['id']
         uri = spotify_response['tracks']['items'][0]['uri']
         return song_util.create_track_dict(artist, title, track_id, uri)
-    except KeyError:
+    except:
         LOGGER.exception(f'Error grabbing Spotify song attributes')
 
 

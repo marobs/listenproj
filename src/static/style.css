@@ -8,3 +8,28 @@ body {
     text-align: justify;
     text-justify: inter-word;
 }
+
+.tracks {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start
+    width: 950px;
+}
+
+.art {
+    flex-basis: auto;
+    margin-right: 1em;
+}
+
+.art img {
+    width: 100px;
+}
+
+.track {
+    flex-basis: auto;
+}
+
+.center {
+    text-align: center;
+}

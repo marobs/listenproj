@@ -5,6 +5,8 @@ import logging as LOGGER
 from service import session_service, spotify_service, authorization_service, login_service, reddit_service
 
 # Register a blueprint named 'listen_controller'
+from service.session_service import log_out_user
+
 listen_controller = Blueprint('listen_controller', __name__, template_folder='templates')
 
 
@@ -90,6 +92,11 @@ def register():
     return redirect('/')
 
 
+@listen_controller.route('/logout', methods=['GET'])
+def log_out():
+    log_out_user()
+    return redirect('/')
+
 ##
 ## [GET] Register
 ## HTML
@@ -117,8 +124,14 @@ def callback():
 @listen_controller.route('/reddit', methods=['GET'])
 def reddit():
     username = session_service.get_username()
-    reddit_tracks = reddit_service.get_reddit_tracks()
-    return render_template('reddit.html', tracks=reddit_tracks, login=username)
+    tracks = reddit_service.get_reddit_tracks()
+
+    if username is not None:
+        access_token = authorization_service.get_access_token(username)
+        tracks = spotify_service.get_spotify_tracks(tracks, access_token)
+        LOGGER.info(f'tracks dict being passed to render template: {tracks}')
+
+    return render_template('reddit.html', tracks=tracks, login=username)
 
 
 @listen_controller.route('/reddit', methods=['POST'])

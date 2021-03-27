@@ -1,9 +1,11 @@
 import logging
 import requests
+from datetime import date
 import urllib.parse
 
 from util import song_util
-from dao import spotify_user_dao_in_memory as spotify_dao
+from dao import spotify_user_dao_in_memory as spotify_user_dao
+from dao import spotify_track_dao_in_memory as spotify_track_dao
 
 from service import secrets_service, session_service, authorization_service
 from constants import SPOTIFY_CLIENT_ID
@@ -35,11 +37,11 @@ TOKEN_GRANT_TYPE = 'authorization_code'
 
 
 def clear_spotify_dao():
-    spotify_dao.clear()
+    spotify_user_dao.clear()
 
 
 def has_spotify_id(username):
-    spotify_id = spotify_dao.get_user(username)
+    spotify_id = spotify_user_dao.get_user(username)
     return not not spotify_id
 
 
@@ -94,13 +96,25 @@ def first_time_spotify_authorization(code, username):
 # Searches Spotify for the closest match to the provide tracks
 #
 def get_spotify_tracks(track_dictionary_list, access_token):
+    today = date.today().strftime('%Y/%m/%d')
+    spotify_tracks = spotify_track_dao.get_playlist_for_date(today)
+
+    if spotify_tracks is None:
+        spotify_tracks = request_tracks_from_spotify(track_dictionary_list, access_token)
+        spotify_track_dao.add_playlist_for_date(today, spotify_tracks)
+
+    LOGGER.info(f'\n\nSpotify tracks post-formatting:\n\n{spotify_tracks}\n\n')
+    return spotify_tracks
+
+
+def request_tracks_from_spotify(track_dictionary_list, access_token):
     spotify_tracks = []
+
     for track_dictionary in track_dictionary_list:
         spotify_track = search_for_song(track_dictionary['artist'], track_dictionary['title'], access_token)
         if spotify_track is not None:
             spotify_tracks.append(spotify_track)
 
-    LOGGER.info(f'\n\nSpotify tracks post-formatting:\n\n{spotify_tracks}\n\n')
     return spotify_tracks
 
 
@@ -123,13 +137,22 @@ def search_for_song(artist, song_title, access_token):
     return get_spotify_track_attributes(search_response.json())
 
 
+def get_album_art_url(images):
+    for image in images:
+        if image['height'] == 300:
+            return image['url']
+    return images[0]['url']
+
 def get_spotify_track_attributes(spotify_response):
     try:
+        LOGGER.info(spotify_response['tracks'])
         artist = spotify_response['tracks']['items'][0]['artists'][0]['name']
         title = spotify_response['tracks']['items'][0]['name']
         track_id = spotify_response['tracks']['items'][0]['id']
         uri = spotify_response['tracks']['items'][0]['uri']
-        return song_util.create_track_dict(artist, title, track_id, uri)
+        album_art_url = get_album_art_url(spotify_response['tracks']['items'][0]['album']['images'])
+        preview_url = spotify_response['tracks']['items'][0]['preview_url']
+        return song_util.create_track_dict(artist, title, track_id, uri, album_art_url)
     except:
         LOGGER.exception(f'Error grabbing Spotify song attributes')
 
@@ -138,7 +161,7 @@ def get_spotify_track_attributes(spotify_response):
 # Gets the user's Spotify ID based on their access token
 #
 def get_spotify_id(username, access_token):
-    spotify_id = spotify_dao.get_user(username)
+    spotify_id = spotify_user_dao.get_user(username)
     if spotify_id is not None:
         return spotify_id
 
@@ -150,7 +173,7 @@ def get_spotify_id(username, access_token):
                                f'user "{username}"')
     try:
         spotify_id = user_response['id']
-        spotify_dao.save_spotify_id(username, spotify_id)
+        spotify_user_dao.save_spotify_id(username, spotify_id)
         return spotify_id
     except KeyError:
         LOGGER.exception(f'Error grabbing Spotify Id for user {username}')

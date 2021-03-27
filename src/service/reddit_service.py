@@ -4,7 +4,7 @@ import logging
 from datetime import date
 
 from util import song_util
-from dao import playlist_dao_in_memory as playlist_dao
+from dao import reddit_dao_in_memory as reddit_track_dao
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,11 +28,11 @@ def get_song_from_post(post_title):
 
 def get_reddit_tracks():
     today = date.today().strftime('%Y/%m/%d')
-    tracks = playlist_dao.get_playlist_for_date(today)
+    tracks = reddit_track_dao.get_playlist_for_date(today)
 
     if tracks is None:
         tracks = request_songs_from_reddit()
-        playlist_dao.add_playlist_for_date(today, tracks)
+        reddit_track_dao.add_playlist_for_date(today, tracks)
 
     return tracks
 
@@ -50,7 +50,7 @@ def request_songs_from_reddit():
         post = child['data']
         try:
             artist, title = get_song_from_post(post['title'])
-            tracks.append(song_util.create_track_dict(artist, title, None, None))
+            tracks.append(song_util.create_track_dict(artist, title, None, None, None))
         except:
             continue
 

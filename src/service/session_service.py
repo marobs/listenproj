@@ -8,10 +8,14 @@ SESSION_STATE_FIELD = "state"
 STATE_STRING_LENGTH = 16
 
 def get_username():
-    if (SESSION_USER_FIELD in session):
+    if SESSION_USER_FIELD in session:
         return session[SESSION_USER_FIELD]
     else:
         return None
+
+def log_out_user():
+    if SESSION_USER_FIELD in session:
+        del session[SESSION_USER_FIELD]
 
 def is_logged_in():
     return SESSION_USER_FIELD in session and session[SESSION_USER_FIELD]

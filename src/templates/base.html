@@ -12,7 +12,7 @@
     <header>
         {% block header %}{% endblock %}
         {% if login %}
-        <p>Logged in as <b>{{ login }}</b></p>
+        <p>Logged in as <b>{{ login }}</b> <a href="/logout">Logout</a></p>
         {% endif %}
     </header>
 

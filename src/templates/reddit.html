@@ -15,13 +15,22 @@
 
 {% block content %}
     <h2>Some songs from r/listentothis:</h2>
-    <ul>
+    {% if login %}
+    <div class="center">
+        <form action="/reddit" method="post">
+            <input type="submit" value="Add Playlist to Account">
+        </form>
+    </div>
+    {% endif %}
+    <div class="tracks">
     {% for track in tracks %}
-        <li>{{ track['artist'] }} - {{ track['title'] }}</li>
+        {% if login %}
+        <iframe src="https://open.spotify.com/embed/track/{{ track['track_id'] }}" width="300" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+        {% else %}
+        <div class="track">
+            <div class="track"><p>{{ track['artist'] }} - {{ track['title'] }}</p></div>
+        </div>
+        {% endif %}
     {% endfor %}
-    </ul>
-
-    <form action="/reddit" method="post">
-        <input type="submit" value="Add Playlist to Account">
-    </form>
+    </div>
 {% endblock %}

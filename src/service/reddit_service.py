@@ -5,10 +5,10 @@ from util import song_util
 
 LOGGER = logging.getLogger(__name__)
 
-LISTENTOTHIS_URL = 'https://www.reddit.com/r/listentothis/top.json?t=day'
-DEFAULT_LTTB_HEADERS = {'user-agent': 'Listen-To-This-Bot'}
+LISTENTOTHIS_URL = "https://www.reddit.com/r/listentothis/top.json?t=day"
+DEFAULT_LTTB_HEADERS = {"user-agent": "Listen-To-This-Bot"}
 
-split_artist_title_regex = re.compile(r'([\w ]+)-+([\w ]+)')
+split_artist_title_regex = re.compile(r"([\w ]+)-+([\w ]+)")
 
 
 class RedditException(Exception):
@@ -27,27 +27,33 @@ def get_reddit_tracks():
     validate_response(songs_response)
 
     tracks = []
-    for child in songs_response.json()['data']['children']:
-        if 'data' not in child or 'stickied' in child['data'] and child['data']['stickied']:
+    for child in songs_response.json()["data"]["children"]:
+        if (
+            "data" not in child
+            or "stickied" in child["data"]
+            and child["data"]["stickied"]
+        ):
             continue
 
-        post = child['data']
+        post = child["data"]
         try:
-            artist, title = get_song_from_post(post['title'])
+            artist, title = get_song_from_post(post["title"])
             tracks.append(song_util.create_track_dict(artist, title, None, None))
         except:
             continue
 
-    LOGGER.info(f'Received Reddit tracks:\n\n{tracks}\n\n')
+    LOGGER.info(f"Received Reddit tracks:\n\n{tracks}\n\n")
     return tracks
 
 
 def validate_response(response):
     if response.status_code != 200:
-        LOGGER.error(f'Got {songs_response.status_code} from reddit with url:{songs_response.url}')
+        LOGGER.error(
+            f"Got {response.status_code} from reddit with url:{response.url}"
+        )
         raise RedditException
 
     response_json = response.json()
-    if 'data' not in response_json or 'children' not in response_json['data']:
-        LOGGER.error(f'Got response JSON with empty data')
+    if "data" not in response_json or "children" not in response_json["data"]:
+        LOGGER.error("Got response JSON with empty data")
         raise RedditException

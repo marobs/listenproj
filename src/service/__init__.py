@@ -1,4 +1,3 @@
-import requests
 import logging
 import http.client as http_client
 

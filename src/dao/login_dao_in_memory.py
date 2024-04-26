@@ -16,4 +16,4 @@ def register_user(username, password):
 def clear():
     global passwords
     passwords = {}
-    print(f'login dao passwords: {passwords}')
+    print(f"login dao passwords: {passwords}")

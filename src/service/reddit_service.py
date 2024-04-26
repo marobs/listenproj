@@ -48,9 +48,7 @@ def get_reddit_tracks():
 
 def validate_response(response):
     if response.status_code != 200:
-        LOGGER.error(
-            f"Got {response.status_code} from reddit with url:{response.url}"
-        )
+        LOGGER.error(f"Got {response.status_code} from reddit with url:{response.url}")
         raise RedditException
 
     response_json = response.json()
